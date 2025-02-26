@@ -1,0 +1,53 @@
+{
+	"from": "01.01.1970",
+	"to": "31.12.1970",
+	"globalOffDays": [
+		"4n",
+		"6v",
+		"6n",
+		"7v",
+		"7n"
+	],
+	"globalHolidays": [
+		"01.08.1970",
+		"24.12.1970"
+	],
+	"employees": [
+		{
+			"name": "Daniela",
+			"surname": "Sprecher",
+			"short": "DS",
+			"percent": 0.8,
+			"fixDays": "1v",
+			"offDays": "5v,5n",
+			"holidays": [
+				{
+					"from": "15.06.1970",
+					"to": "30.06.1970"
+				},
+				{
+					"from": "01.12.1970",
+					"to": "15.12.1970"
+				}
+			]
+		},
+		{
+			"name": "John",
+			"surname": "Smith",
+			"short": "JS",
+			"percent": 1.0,
+			"fixDays": "2n,4v",
+			"offDays": "1v,1n",
+			"holidays": [
+				{
+					"from": "15.06.1970",
+					"to": "30.06.1970"
+				},
+				{
+					"from": "01.12.1970",
+					"to": "15.12.1970"
+				}
+			]
+		}
+	]
+}
