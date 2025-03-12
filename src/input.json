@@ -14,40 +14,24 @@
 	],
 	"employees": [
 		{
+			"id": 1,
+			"count": 0,
 			"name": "Daniela",
 			"surname": "Sprecher",
 			"short": "DS",
 			"percent": 0.8,
 			"fixDays": "1v",
-			"offDays": "5v,5n",
-			"holidays": [
-				{
-					"from": "15.06.1970",
-					"to": "30.06.1970"
-				},
-				{
-					"from": "01.12.1970",
-					"to": "15.12.1970"
-				}
-			]
+			"offDays": "5v,5n"
 		},
 		{
+			"id": 2,
+			"count": 0,
 			"name": "John",
 			"surname": "Smith",
 			"short": "JS",
 			"percent": 1.0,
 			"fixDays": "2n,4v",
-			"offDays": "1v,1n",
-			"holidays": [
-				{
-					"from": "15.06.1970",
-					"to": "30.06.1970"
-				},
-				{
-					"from": "01.12.1970",
-					"to": "15.12.1970"
-				}
-			]
+			"offDays": "1v,1n"
 		}
 	]
 }

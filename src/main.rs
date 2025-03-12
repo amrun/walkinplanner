@@ -1,31 +1,96 @@
-use chrono::{NaiveDate, Weekday, Datelike};
-use std::fs;
+#![allow(warnings)]
+
+use chrono::{Datelike, NaiveDate, Weekday};
 use serde_json::{Value, from_str};
 use std::error::Error;
+use std::fs;
+use std::fs::File;
+use std::io::{BufWriter, Write, stdout};
+use std::path::Path;
 
-
-use ferris_says::say; // from the previous step
-use std::io::{stdout, BufWriter};
-
+mod company_data;
+mod employee;
+use crate::company_data::CompanyData;
+use crate::employee::Employee;
 
 fn main() {
-match read_json_file("/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json") {
-        Ok(json) => println!("JSON contents: {:?}", json),
-        Err(e) => eprintln!("Error reading JSON file: {}", e),
+    let mut outputContent = String::new();
+    let file_path = "/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json";
+
+    // Read and parse the data
+    let result =
+        read_json_file(file_path).and_then(|json_content| parse_json_string(&json_content));
+
+    match result {
+        Ok(company_data) => {
+            // Extract employees from company_data
+            let employees = &company_data.employees;
+
+            // Now company_data and employees are available throughout this scope
+            outputContent.push_str(&format!("Found {} employees:", employees.len()));
+            for employee in employees {
+                outputContent.push_str(&format!("{:?}", employee));
+            }
+
+            // Example: Access company_data attributes
+            outputContent.push_str(&format!(
+                "Planning period: from {} to {}",
+                company_data.from, company_data.to
+            ));
+            outputContent.push_str(&format!(
+                "Global holidays: {:?}",
+                company_data.global_holidays
+            ));
+
+            // Example: Access employees later
+            if let Some(first_employee) = employees.first() {
+                outputContent.push_str(&format!("First employee's name: {}", first_employee.name));
+            }
+        }
+        //TODO: Check how to call the writeFile function
+        Err(e) => println!("Error processing '{}': {}", file_path, e),
     }
-/*
-    let dates = vec!["15.03.2023", "22.07.2024", "01.12.2022", "09.05.2025"];
-    process_dates(&dates);
 
+    /*match read_json_file(file_path) {
+        Ok(json_content) => {
+            match parse_json_string(&json_content) {
+                Ok(employees) => {
+                    println!("Found {} employees:", employees.len());
+                    for employee in &employees {
+                        println!("{:?}", employee);
+                        //println!("{}", employee.name + employee.surname);
+                    }
+                }
+                Err(e) => println!("Error parsing JSON: {}", e),
+            }
+        }
+        Err(e) => println!("Error reading file '{}': {}", file_path, e),
+    } */
+}
 
-    let stdout = stdout();
-    let message = String::from("Hello fellow Rustaceans!");
-    let width = message.chars().count();
+fn writeFile(content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let content = content;
+    let file_path = "output.txt";
 
-    let mut writer = BufWriter::new(stdout.lock());
-    say(&message, width, &mut writer).unwrap();
-    */
+    // Create or open the file (overwrites by default)
+    let mut file = File::create(file_path)?;
 
+    // Write the string content
+    file.write_all(content.as_bytes())?;
+
+    println!("Successfully wrote to {}", file_path);
+    Ok(())
+}
+
+fn parse_json_string(json_str: &str) -> Result<CompanyData, Box<dyn std::error::Error>> {
+    let company_data: CompanyData = serde_json::from_str(json_str)?;
+    Ok(company_data)
+}
+
+fn read_json_file(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let path = Path::new(file_path);
+    let contents = fs::read_to_string(path)?;
+    Ok(contents)
 }
 
 // Function to get German weekday name and number
@@ -41,32 +106,4 @@ fn get_german_weekday_info(weekday: Weekday) -> (u32, &'static str) {
         Weekday::Sun => "Sonntag",
     };
     (number, name)
-
-
-}
-
-// Function to process and print dates
-fn process_dates(dates: &[&str]) {
-    for date_str in dates {
-        match NaiveDate::parse_from_str(date_str, "%d.%m.%Y") {
-            Ok(date) => {
-                let (number, name) = get_german_weekday_info(date.weekday());
-                println!("{} ist ein {} (Wochentag-Nummer: {})", date_str, name, number);
-            }
-            Err(e) => {
-                println!("Fehler beim Parsen von {}: {}", date_str, e);
-            }
-        }
-    }
-}
-
-
-fn read_json_file(file_path: &str) -> Result<Value, Box<dyn Error>> {
-    // Read the file contents into a string
-    let contents = fs::read_to_string(file_path)?;
-    
-    // Parse the string into a JSON Value
-    let json: Value = from_str(&contents)?;
-    
-    Ok(json)
 }
