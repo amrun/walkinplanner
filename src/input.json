@@ -26,9 +26,29 @@
 		{
 			"id": 2,
 			"count": 0,
+			"name": "Paddy",
+			"surname": "Oreilly",
+			"short": "PO",
+			"percent": 1.0,
+			"fixDays": "2n,4v",
+			"offDays": "1v,1n"
+		},
+		{
+			"id": 3,
+			"count": 0,
 			"name": "John",
 			"surname": "Smith",
 			"short": "JS",
+			"percent": 1.0,
+			"fixDays": "2n,4v",
+			"offDays": "1v,1n"
+		},
+		{
+			"id": 4,
+			"count": 0,
+			"name": "Mack",
+			"surname": "Johnson",
+			"short": "MJ",
 			"percent": 1.0,
 			"fixDays": "2n,4v",
 			"offDays": "1v,1n"
