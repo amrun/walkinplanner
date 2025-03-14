@@ -13,73 +13,45 @@ mod employee;
 use crate::company_data::CompanyData;
 use crate::employee::Employee;
 
+mod file_handler; // Declares the file_builder module
+use file_handler::FileHandler; // Imports FileBuilder into scope
+
 fn main() {
-    let mut outputContent = String::new();
+    let mut outputFileHandler = FileHandler::new();
     let file_path = "/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json";
 
-    // Read and parse the data
+    // Read the file and parse the content
     let result =
         read_json_file(file_path).and_then(|json_content| parse_json_string(&json_content));
 
     match result {
         Ok(company_data) => {
             // Extract employees from company_data
-            let employees = &company_data.employees;
+            let mut employees = &company_data.employees;
 
             // Now company_data and employees are available throughout this scope
-            outputContent.push_str(&format!("Found {} employees:", employees.len()));
+            println!("Found {} employees:", employees.len());
+
+            //TODO: put in separate function
             for employee in employees {
-                outputContent.push_str(&format!("{:?}", employee));
+                println!("{:?}", employee);
             }
 
             // Example: Access company_data attributes
-            outputContent.push_str(&format!(
+            println!(
                 "Planning period: from {} to {}",
                 company_data.from, company_data.to
-            ));
-            outputContent.push_str(&format!(
-                "Global holidays: {:?}",
-                company_data.global_holidays
-            ));
+            );
+            println!("Global holidays: {:?}", company_data.global_holidays);
 
             // Example: Access employees later
             if let Some(first_employee) = employees.first() {
-                outputContent.push_str(&format!("First employee's name: {}", first_employee.name));
+                println!("First employee's name: {}", first_employee.name);
             }
         }
         //TODO: Check how to call the writeFile function
         Err(e) => println!("Error processing '{}': {}", file_path, e),
     }
-
-    /*match read_json_file(file_path) {
-        Ok(json_content) => {
-            match parse_json_string(&json_content) {
-                Ok(employees) => {
-                    println!("Found {} employees:", employees.len());
-                    for employee in &employees {
-                        println!("{:?}", employee);
-                        //println!("{}", employee.name + employee.surname);
-                    }
-                }
-                Err(e) => println!("Error parsing JSON: {}", e),
-            }
-        }
-        Err(e) => println!("Error reading file '{}': {}", file_path, e),
-    } */
-}
-
-fn writeFile(content: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let content = content;
-    let file_path = "output.txt";
-
-    // Create or open the file (overwrites by default)
-    let mut file = File::create(file_path)?;
-
-    // Write the string content
-    file.write_all(content.as_bytes())?;
-
-    println!("Successfully wrote to {}", file_path);
-    Ok(())
 }
 
 fn parse_json_string(json_str: &str) -> Result<CompanyData, Box<dyn std::error::Error>> {
