@@ -10,6 +10,11 @@ impl FileHandler {
         FileHandler { lines: Vec::new() }
     }
 
+    pub fn add_header_line(&mut self) {
+        self.lines
+            .push("Datum,Wochentag,Vormittag,Nachmittag".to_string());
+    }
+
     pub fn add_line(&mut self, line: &str) {
         self.lines.push(line.to_string());
     }
