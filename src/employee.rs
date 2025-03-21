@@ -11,6 +11,6 @@ pub struct Employee {
     pub fix_days: String,
     #[serde(rename = "offDays")]
     pub off_days: String,
-    pub id: i32,
-    pub count: f32,
+    pub id: u32,
+    pub count: u32,
 }
