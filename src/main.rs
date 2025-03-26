@@ -22,8 +22,8 @@ fn main() {
     let mut rng = thread_rng();
     let mut outputFileHandler = FileHandler::new();
 
-    let file_path = get_input_path();
-    // let file_path = "/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json";
+    // let file_path = get_input_path();
+    let file_path = "/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json";
 
     let mut daysPlanned: i128 = 0;
     let mut daysWeekendAndHolidays: i128 = 0;
@@ -69,7 +69,9 @@ fn main() {
                 }
             }
 
+            // Add Header line to csv output
             outputFileHandler.add_header_line();
+
             // Loop through days
             while currentDate <= endDate {
                 let mut lineToAdd = String::new();
@@ -97,6 +99,7 @@ fn main() {
                 lineToAdd.push_str(",");
 
                 // Plan morning employee
+                employees.sort_by(|a, b| a.count.cmp(&b.count));
                 let randomEmployeeNumber = rng.gen_range(0..employees.len());
                 employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
                     .count
@@ -106,7 +109,8 @@ fn main() {
                 lineToAdd.push_str(",");
 
                 // Plan afternoon employee
-                let randomEmployeeNumber = rng.gen_range(0..employees.len());
+                employees.sort_by(|a, b| a.count.cmp(&b.count));
+                let randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
                 employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
                     .count
                     .checked_add(1)
