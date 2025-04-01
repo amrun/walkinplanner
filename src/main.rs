@@ -12,18 +12,17 @@ mod employee;
 use crate::company_data::CompanyData;
 use crate::employee::Employee;
 
-mod file_handler; // Declares the file_builder module
-use file_handler::FileHandler; // Imports FileBuilder into scope
+mod file_handler;
+use file_handler::FileHandler;
 
 use rand::Rng;
 use rand::thread_rng;
 
 fn main() {
-    let mut rng = thread_rng();
     let mut outputFileHandler = FileHandler::new();
 
     // let file_path = get_input_path();
-    let file_path = "/Users/bberger/Documents/ObsidianBB/1-Privat/1-Projects/Walk-In-Planer/walkinplanner/src/input.json";
+    let file_path = "/Users/bberger/Code/walkinplanner/src/input.json";
 
     let mut daysPlanned: i128 = 0;
     let mut daysWeekendAndHolidays: i128 = 0;
@@ -75,6 +74,7 @@ fn main() {
             // Loop through days
             while currentDate <= endDate {
                 let mut lineToAdd = String::new();
+
                 // Get the german name of the weekday
                 let (number, WeekdayName) = get_german_weekday(currentDate.weekday());
                 let currentDateAndWeekdayString =
@@ -95,41 +95,29 @@ fn main() {
                     continue;
                 }
 
+                // Add current date and weekday
                 lineToAdd.push_str(&currentDateAndWeekdayString);
                 lineToAdd.push_str(",");
 
+                //lineToAdd.push_str(&planEmployee(&employees));
+
                 // Plan morning employee
-                employees.sort_by(|a, b| a.count.cmp(&b.count));
-                let randomEmployeeNumber = rng.gen_range(0..employees.len());
-                employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
-                    .count
-                    .checked_add(1)
-                    .unwrap_or(u32::MAX);
-                lineToAdd.push_str(&employees[randomEmployeeNumber].short);
+                lineToAdd.push_str(&planEmployee(&mut employees, currentDate));
                 lineToAdd.push_str(",");
 
                 // Plan afternoon employee
-                employees.sort_by(|a, b| a.count.cmp(&b.count));
-                let randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
-                employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
-                    .count
-                    .checked_add(1)
-                    .unwrap_or(u32::MAX);
-                lineToAdd.push_str(&employees[randomEmployeeNumber].short);
+                lineToAdd.push_str(&planEmployee(&mut employees, currentDate));
 
-                // lineToAdd.push_str(&String::from(",empty,empty"));
-
+                // Add the prepared line to the output
                 outputFileHandler.add_line(&lineToAdd);
 
                 // Check for global off days
                 // if (currentDate.weekday().number_from_monday() < 4) {}
 
-                //let (number, name) = get_german_weekday(currentDate.weekday());
-                //println!("{},{}", currentDate, name);
-
                 currentDate = currentDate.succ_opt().unwrap();
             }
 
+            // Write prepared content to output file
             outputFileHandler.write_to_file("./output.csv");
 
             println!("Employees planned:");
@@ -155,17 +143,28 @@ fn is_weekend(date: NaiveDate) -> bool {
     matches!(date.weekday(), Weekday::Sat | Weekday::Sun)
 }
 
-fn planEmployee(date: NaiveDate) {
+fn planEmployee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
+    let mut rng = thread_rng();
+    employees.sort_by(|a, b| a.count.cmp(&b.count));
+    let randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
+
+    // TODO: Check for last planned and rerandom if necessary
+    employees[randomEmployeeNumber].last_duty = date;
     println!(
-        "The weekday is: {} and is a Weekend-day: {}",
-        date.weekday().num_days_from_monday(),
-        is_weekend(date)
+        "{}",
+        employees[randomEmployeeNumber]
+            .last_duty
+            .format("%d.%m.%Y")
+            .to_string()
     );
-    // println!("The date is: {}", date.weekday().num_days_from_monday());
-    // println!("The date is: {:?}", get_german_weekday(date.weekday()));
-    // let (number, name) = get_german_weekday(date.weekday());
-    // println!("The date is: {}", name);
-    // println!("And the next date is: {}", date.succ_opt().unwrap());
+
+    // Add 1 to the count of the employee
+    employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
+        .count
+        .checked_add(1)
+        .unwrap_or(u32::MAX);
+
+    employees[randomEmployeeNumber].short.clone()
 }
 
 fn parse_json_string(json_str: &str) -> Result<CompanyData, Box<dyn std::error::Error>> {

@@ -10,6 +10,8 @@
 	],
 	"globalHolidays": [
 		"01.08.1970",
+		"12.04.1970",
+		"18.06.1970",
 		"24.12.1970"
 	],
 	"employees": [
@@ -20,8 +22,9 @@
 			"surname": "Sprecher",
 			"short": "DS",
 			"percent": 0.8,
-			"fixDays": "1v",
-			"offDays": "5v,5n"
+			"fix_days": "1v",
+			"off_days": "5v,5n",
+			"last_duty": "01.01.1970"
 		},
 		{
 			"id": 2,
@@ -30,8 +33,9 @@
 			"surname": "Oreilly",
 			"short": "PO",
 			"percent": 1.0,
-			"fixDays": "2n,4v",
-			"offDays": "1v,1n"
+			"fix_days": "2n,4v",
+			"off_days": "1v,1n",
+			"last_duty": "01.01.1970"
 		},
 		{
 			"id": 3,
@@ -40,8 +44,9 @@
 			"surname": "Smith",
 			"short": "JS",
 			"percent": 1.0,
-			"fixDays": "2n,4v",
-			"offDays": "1v,1n"
+			"fix_days": "2n,4v",
+			"off_days": "1v,1n",
+			"last_duty": "01.01.1970"
 		},
 		{
 			"id": 4,
@@ -50,8 +55,9 @@
 			"surname": "Johnson",
 			"short": "MJ",
 			"percent": 1.0,
-			"fixDays": "2n,4v",
-			"offDays": "1v,1n"
+			"fix_days": "2n,4v",
+			"off_days": "1v,1n",
+			"last_duty": "01.01.1970"
 		}
 	]
 }
