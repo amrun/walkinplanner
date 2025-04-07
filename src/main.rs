@@ -15,8 +15,8 @@ use crate::employee::Employee;
 mod file_handler;
 use file_handler::FileHandler;
 
-use rand::Rng;
 use rand::thread_rng;
+use rand::{Rng, random};
 
 fn main() {
     let mut outputFileHandler = FileHandler::new();
@@ -89,7 +89,7 @@ fn main() {
                 // Check for global holidays
                 if (globalHolidays.contains(&currentDate)) {
                     lineToAdd.push_str(&currentDateAndWeekdayString);
-                    lineToAdd.push_str(&String::from(",Ferien,Ferien"));
+                    lineToAdd.push_str(&String::from(",Feiertag,"));
                     outputFileHandler.add_line(&lineToAdd);
                     currentDate = currentDate.succ_opt().unwrap();
                     continue;
@@ -99,14 +99,12 @@ fn main() {
                 lineToAdd.push_str(&currentDateAndWeekdayString);
                 lineToAdd.push_str(",");
 
-                //lineToAdd.push_str(&planEmployee(&employees));
-
                 // Plan morning employee
-                lineToAdd.push_str(&planEmployee(&mut employees, currentDate));
+                lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
                 lineToAdd.push_str(",");
 
                 // Plan afternoon employee
-                lineToAdd.push_str(&planEmployee(&mut employees, currentDate));
+                lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
 
                 // Add the prepared line to the output
                 outputFileHandler.add_line(&lineToAdd);
@@ -120,9 +118,21 @@ fn main() {
             // Write prepared content to output file
             outputFileHandler.write_to_file("./output.csv");
 
+            println!("Planned from {} to {}", startDate_string, endDate_string);
+            println!(
+                "some stuff i forgot {} to {}",
+                startDate_string, endDate_string
+            );
+
             println!("Employees planned:");
             for e in employees {
-                println!("{}: {}", e.short, e.count);
+                println!(
+                    "{}\t{}\t{} (effective {}) duties.",
+                    e.name,
+                    e.surname,
+                    e.count,
+                    e.count * e.percent
+                );
             }
 
             // Pause for user input
@@ -143,26 +153,37 @@ fn is_weekend(date: NaiveDate) -> bool {
     matches!(date.weekday(), Weekday::Sat | Weekday::Sun)
 }
 
-fn planEmployee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
+fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
     let mut rng = thread_rng();
-    employees.sort_by(|a, b| a.count.cmp(&b.count));
-    let randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
+    employees.sort_by(|a, b| {
+        a.count
+            .partial_cmp(&b.count)
+            .unwrap_or(std::cmp::Ordering::Greater)
+    });
+    let mut randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
+    // let mut randomEmployeeNumber = 0;
 
-    // TODO: Check for last planned and rerandom if necessary
+    // println!("{}", date.format("%d.%m.%Y").to_string());
+
+    /* Check for last planned duty and sorty by last_duty if too early in the past (2 days). */
+    // TODO: make the days configurable
+    if (date - employees[randomEmployeeNumber].last_duty)
+        .num_days()
+        .abs()
+        < 2
+    {
+        // employees.sort_by(|a, b| a.last_duty.cmp(&b.last_duty));
+        employees.sort_by(|a, b| a.last_duty.cmp(&b.last_duty));
+
+        // randomEmployeeNumber = rng.gen_range(0..employees.len());
+        randomEmployeeNumber = 0;
+    }
+
+    // Add duty to count of employee based on his working percentage
+    employees[randomEmployeeNumber].count = employees[randomEmployeeNumber].count
+        + (1.0 * (1.0 / employees[randomEmployeeNumber].percent));
+    // Set last duty to this date
     employees[randomEmployeeNumber].last_duty = date;
-    println!(
-        "{}",
-        employees[randomEmployeeNumber]
-            .last_duty
-            .format("%d.%m.%Y")
-            .to_string()
-    );
-
-    // Add 1 to the count of the employee
-    employees[randomEmployeeNumber].count = employees[randomEmployeeNumber]
-        .count
-        .checked_add(1)
-        .unwrap_or(u32::MAX);
 
     employees[randomEmployeeNumber].short.clone()
 }
@@ -200,4 +221,8 @@ fn get_input_path() -> Result<String, Box<dyn Error>> {
         .ok_or("Couldn't get executable directory")?;
     let path = dir.join("input.json");
     Ok(path.to_str().ok_or("Path is not valid UTF-8")?.to_string())
+}
+
+fn encode_to_weekdaycode() -> String {
+    return String::from("blubb");
 }

@@ -9,10 +9,9 @@ pub struct Employee {
     pub surname: String,
     pub short: String,
     pub percent: f32,
-    pub fix_days: String,
     pub off_days: String,
     pub id: u32,
-    pub count: u32,
+    pub count: f32,
     #[serde(
         serialize_with = "serialize_naivedate",
         deserialize_with = "deserialize_naivedate"

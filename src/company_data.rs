@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::employee::Employee;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanyData {
@@ -10,4 +11,5 @@ pub struct CompanyData {
     #[serde(rename = "globalHolidays")]
     pub global_holidays: Vec<String>,
     pub employees: Vec<Employee>,
+    pub fix_days: Vec<HashMap<String, i32>>,
 }
