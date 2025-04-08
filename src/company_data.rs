@@ -11,5 +11,5 @@ pub struct CompanyData {
     #[serde(rename = "globalHolidays")]
     pub global_holidays: Vec<String>,
     pub employees: Vec<Employee>,
-    pub fix_days: Vec<HashMap<String, i32>>,
+    pub fix_days: Vec<HashMap<String, u32>>,
 }

@@ -2,6 +2,7 @@
 
 use chrono::{Datelike, NaiveDate, Weekday, naive};
 use serde_json::{Value, from_str};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::io::{BufWriter, Write, stdin, stdout};
@@ -100,11 +101,43 @@ fn main() {
                 lineToAdd.push_str(",");
 
                 // Plan morning employee
-                lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                let mut key = format!("{}v", currentDate.weekday().number_from_monday());
+                if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
+                    let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
+                    if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
+                        lineToAdd.push_str(&employees[index].short);
+                        // TODO: move this to a function, including the part in plan_employee
+                        employees[index].count =
+                            employees[index].count + (1.0 * (1.0 / employees[index].percent));
+                        // Set last duty to this date
+                        employees[index].last_duty = currentDate;
+                    } else {
+                        println!("Employee with ID {} not found", id_to_find);
+                    }
+                } else {
+                    lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                }
+
+                // Add divider of morning and afternoon (yes, it's just a coma)
                 lineToAdd.push_str(",");
 
                 // Plan afternoon employee
-                lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                let mut key = format!("{}n", currentDate.weekday().number_from_monday());
+                if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
+                    let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
+                    if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
+                        lineToAdd.push_str(&employees[index].short);
+                        // TODO: move this to a function, including the part in plan_employee
+                        employees[index].count =
+                            employees[index].count + (1.0 * (1.0 / employees[index].percent));
+                        // Set last duty to this date
+                        employees[index].last_duty = currentDate;
+                    } else {
+                        println!("Employee with ID {} not found", id_to_find);
+                    }
+                } else {
+                    lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                }
 
                 // Add the prepared line to the output
                 outputFileHandler.add_line(&lineToAdd);
@@ -221,8 +254,4 @@ fn get_input_path() -> Result<String, Box<dyn Error>> {
         .ok_or("Couldn't get executable directory")?;
     let path = dir.join("input.json");
     Ok(path.to_str().ok_or("Path is not valid UTF-8")?.to_string())
-}
-
-fn encode_to_weekdaycode() -> String {
-    return String::from("blubb");
 }
