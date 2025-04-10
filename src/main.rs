@@ -1,12 +1,9 @@
 //#![allow(warnings)]
 
-use chrono::{Datelike, NaiveDate, Weekday, naive};
-use serde_json::{Value, from_str};
-use std::collections::HashMap;
-use std::error::Error;
+use chrono::{Datelike, NaiveDate, Weekday};
 use std::fs;
-use std::io::{BufWriter, Write, stdin, stdout};
-use std::path::{Path, PathBuf};
+use std::io::{Write, stdin, stdout};
+use std::path::Path;
 
 mod company_data;
 mod employee;
@@ -17,7 +14,7 @@ mod file_handler;
 use file_handler::FileHandler;
 
 use rand::thread_rng;
-use rand::{Rng, random};
+use rand::Rng;
 
 fn main() {
     let mut outputFileHandler = FileHandler::new();
@@ -60,7 +57,7 @@ fn main() {
             }
 
             // Parse the start date string into a NaiveDate
-            let mut endDate: NaiveDate;
+            let endDate: NaiveDate;
             let endDate_string = &company_data.to;
             match NaiveDate::parse_from_str(endDate_string, "%d.%m.%Y") {
                 Ok(date) => endDate = date,
@@ -103,7 +100,7 @@ fn main() {
                 lineToAdd.push_str(",");
 
                 // Plan morning employee
-                let mut key = format!("{}v", currentDate.weekday().number_from_monday());
+                let key = format!("{}v", currentDate.weekday().number_from_monday());
                 if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
                     let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
                     if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
@@ -133,7 +130,7 @@ fn main() {
                 lineToAdd.push_str(",");
 
                 // Plan afternoon employee
-                let mut key = format!("{}n", currentDate.weekday().number_from_monday());
+                let key = format!("{}n", currentDate.weekday().number_from_monday());
                 if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
                     let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
                     if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
