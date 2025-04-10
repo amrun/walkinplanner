@@ -1,4 +1,4 @@
-#![allow(warnings)]
+//#![allow(warnings)]
 
 use chrono::{Datelike, NaiveDate, Weekday, naive};
 use serde_json::{Value, from_str};
@@ -22,15 +22,16 @@ use rand::{Rng, random};
 fn main() {
     let mut outputFileHandler = FileHandler::new();
 
-    // let file_path = get_input_path();
-    let file_path = "/Users/bberger/Code/walkinplanner/src/input.json";
+    let file_path = get_file_path(String::from("input.json"));
+    // let file_path = "/Users/bberger/Code/walkinplanner/src/input.json";
 
     let mut daysPlanned: i128 = 0;
     let mut daysWeekendAndHolidays: i128 = 0;
+    let mut errors = 0;
 
     // Read the file and parse the content
     let result =
-        read_json_file(file_path).and_then(|json_content| parse_json_string(&json_content));
+        read_json_file(&file_path).and_then(|json_content| parse_json_string(&json_content));
 
     match result {
         Ok(company_data) => {
@@ -82,13 +83,14 @@ fn main() {
                     format_date_string(currentDate) + "," + &WeekdayName;
 
                 // Check for weekends and continue if yes
-                if (is_weekend(currentDate)) {
+                if is_weekend(currentDate) {
                     currentDate = currentDate.succ_opt().unwrap();
+                    daysWeekendAndHolidays += 1;
                     continue;
                 }
 
                 // Check for global holidays
-                if (globalHolidays.contains(&currentDate)) {
+                if globalHolidays.contains(&currentDate) {
                     lineToAdd.push_str(&currentDateAndWeekdayString);
                     lineToAdd.push_str(&String::from(",Feiertag,"));
                     outputFileHandler.add_line(&lineToAdd);
@@ -115,7 +117,16 @@ fn main() {
                         println!("Employee with ID {} not found", id_to_find);
                     }
                 } else {
-                    lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                    let mut employeeShortToPlan = plan_employee(&mut employees, currentDate);
+                    let mut attempts = 0;
+                    while employeeShortToPlan == "Error:isOffDay" && attempts < 5000 {
+                        employeeShortToPlan = plan_employee(&mut employees, currentDate);
+                        attempts += 1;
+                    }
+                    if employeeShortToPlan.contains("Error") {
+                        errors += 1;
+                    }
+                    lineToAdd.push_str(&employeeShortToPlan);
                 }
 
                 // Add divider of morning and afternoon (yes, it's just a coma)
@@ -136,31 +147,44 @@ fn main() {
                         println!("Employee with ID {} not found", id_to_find);
                     }
                 } else {
-                    lineToAdd.push_str(&plan_employee(&mut employees, currentDate));
+                    let mut employeeShortToPlan = plan_employee(&mut employees, currentDate);
+                    let mut attempts = 0;
+                    while employeeShortToPlan == "Error:isOffDay" && attempts < 5000 {
+                        employeeShortToPlan = plan_employee(&mut employees, currentDate);
+                        attempts += 1;
+                    }
+                    if employeeShortToPlan.contains("Error") {
+                        errors += 1;
+                    }
+                    lineToAdd.push_str(&employeeShortToPlan);
                 }
 
                 // Add the prepared line to the output
                 outputFileHandler.add_line(&lineToAdd);
 
-                // Check for global off days
-                // if (currentDate.weekday().number_from_monday() < 4) {}
-
                 currentDate = currentDate.succ_opt().unwrap();
+
+                daysPlanned += 1;
             }
 
             // Write prepared content to output file
-            outputFileHandler.write_to_file("./output.csv");
+            let _ = outputFileHandler.write_to_file(&get_file_path(String::from("./output.csv")));
 
+            println!("\n\nInfo:");
+            println!("------------------");
             println!("Planned from {} to {}", startDate_string, endDate_string);
             println!(
-                "some stuff i forgot {} to {}",
-                startDate_string, endDate_string
+                "Weekend- and Holidays: {}",
+                daysWeekendAndHolidays.to_string()
             );
+            println!("Days planned: {}", daysPlanned.to_string());
+            println!("Errors: {}", errors.to_string());
 
-            println!("Employees planned:");
+            println!("\n\nEmployees planned:");
+            println!("------------------");
             for e in employees {
                 println!(
-                    "{}\t{}\t{} (effective {}) duties.",
+                    "{}\t{}\t{} duties (effective {}).",
                     e.name,
                     e.surname,
                     e.count,
@@ -168,11 +192,13 @@ fn main() {
                 );
             }
 
+            print!("\n\nDone. Use the generated file 'output.csv' as excel import.");
+
             // Pause for user input
-            print!("Press Enter to continue...");
+            print!("\n\nPress Enter to continue...");
             stdout().flush(); // Ensure prompt is visible
             let mut input = String::new();
-            // stdin().read_line(&mut input); // Wait for Enter
+            stdin().read_line(&mut input); // Wait for Enter
         }
         Err(e) => println!("Error processing '{}': {}", file_path, e),
     }
@@ -194,6 +220,7 @@ fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
             .unwrap_or(std::cmp::Ordering::Greater)
     });
     let mut randomEmployeeNumber = rng.gen_range(0..employees.len() / 2);
+
     // let mut randomEmployeeNumber = 0;
 
     // println!("{}", date.format("%d.%m.%Y").to_string());
@@ -210,6 +237,15 @@ fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
 
         // randomEmployeeNumber = rng.gen_range(0..employees.len());
         randomEmployeeNumber = 0;
+    }
+
+    // If the chosen Employee does not work on this day, return an error string
+    let weekdaycode = format!("{}v", date.weekday().number_from_monday());
+    if employees[randomEmployeeNumber]
+        .off_days
+        .contains(&weekdaycode)
+    {
+        return String::from("Error:isOffDay");
     }
 
     // Add duty to count of employee based on his working percentage
@@ -247,11 +283,43 @@ fn get_german_weekday(weekday: Weekday) -> (u32, &'static str) {
     (number, name)
 }
 
-fn get_input_path() -> Result<String, Box<dyn Error>> {
-    let exe_path = std::env::current_exe()?;
-    let dir = exe_path
-        .parent()
-        .ok_or("Couldn't get executable directory")?;
-    let path = dir.join("input.json");
-    Ok(path.to_str().ok_or("Path is not valid UTF-8")?.to_string())
+// fn get_input_path() -> Result<String, Box<dyn Error>> {
+//     let exe_path = std::env::current_exe()?;
+//     let dir = exe_path
+//         .parent()
+//         .ok_or("Couldn't get executable directory")?;
+//     let path = dir.join("input.json");
+//     Ok(path.to_str().ok_or("Path is not valid UTF-8")?.to_string())
+// }
+
+fn get_file_path(filename: String) -> String {
+    // Get the executable path, or exit on failure
+    let exe_path = match std::env::current_exe() {
+        Ok(path) => path,
+        Err(e) => {
+            eprintln!("Error: Failed to get executable path: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Get the parent directory, or exit if it fails
+    let dir = match exe_path.parent() {
+        Some(dir) => dir,
+        None => {
+            eprintln!("Error: Couldn't get executable directory");
+            std::process::exit(1);
+        }
+    };
+
+    // Construct the full path
+    let path = dir.join(filename);
+
+    // Convert to string, or exit if not valid UTF-8
+    match path.to_str() {
+        Some(s) => s.to_string(),
+        None => {
+            eprintln!("Error: Path is not valid UTF-8");
+            std::process::exit(1);
+        }
+    }
 }
