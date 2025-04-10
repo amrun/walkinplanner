@@ -50,7 +50,7 @@
 			"surname": "Burger",
 			"short": "BB",
 			"percent": 1.0,
-			"off_days": "1v,1n",
+			"off_days": "",
 			"last_duty": "01.01.1970"
 		},
 		{
@@ -70,7 +70,7 @@
 			"surname": "Duckson",
 			"short": "DD",
 			"percent": 1.0,
-			"off_days": "1v,1n",
+			"off_days": "",
 			"last_duty": "01.01.1970"
 		},
 		{
@@ -80,7 +80,7 @@
 			"surname": "Egrit",
 			"short": "EE",
 			"percent": 0.5,
-			"off_days": "1v,1n",
+			"off_days": "",
 			"last_duty": "01.01.1970"
 		},
 		{
@@ -90,7 +90,7 @@
 			"surname": "Froopson",
 			"short": "FF",
 			"percent": 1.0,
-			"off_days": "1v,1n",
+			"off_days": "",
 			"last_duty": "01.01.1970"
 		}
 	]
