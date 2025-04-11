@@ -19,8 +19,8 @@ use rand::thread_rng;
 fn main() {
     let mut output_file_handler = FileHandler::new();
 
-    // let file_path = get_file_path(String::from("input.json"));
-    let file_path = "/Users/bberger/Code/walkinplanner/src/input.json";
+    let file_path = get_file_path(String::from("input.json"));
+    // let file_path = "/Users/bberger/Code/walkinplanner/src/input.json";
 
     let mut days_planned: i128 = 0;
     let mut days_weekend_and_holidays: i128 = 0;
