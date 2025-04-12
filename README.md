@@ -34,9 +34,9 @@ The input file must contain valid json only. Be careful about the brackets and "
 	- Days on which to ALWAYS plan one 
 	- This superseds the off days of employees
 	- Enter the **id** of the employee, of which to plan by default
-		- 0 for no employee
+		- 0 for random employee
 - employees
-	- Copy as many employee blocks as needed
+	- Copy and edit as many employee blocks as needed
 	- Fields:
 		- id: ID of the employee. **Must be unique**
 		- count: leave as 0.0
