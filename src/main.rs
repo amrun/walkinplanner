@@ -114,14 +114,17 @@ fn main() {
                         println!("Employee with ID {} not found", id_to_find);
                     }
                 } else {
-                    let mut employee_short_to_plan = plan_employee(&mut employees, current_date);
+                    let mut employee_short_to_plan =
+                        plan_employee(&mut employees, current_date, false);
                     let mut attempts = 0;
                     while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
-                        employee_short_to_plan = plan_employee(&mut employees, current_date);
+                        employee_short_to_plan = plan_employee(&mut employees, current_date, false);
                         attempts += 1;
                     }
                     if employee_short_to_plan.contains("Error") {
                         errors += 1;
+                        employee_short_to_plan =
+                            plan_employee_with_lowest_count(&mut employees, current_date, false);
                     }
                     line_to_add.push_str(&employee_short_to_plan);
                 }
@@ -144,14 +147,17 @@ fn main() {
                         println!("Employee with ID {} not found", id_to_find);
                     }
                 } else {
-                    let mut employee_short_to_plan = plan_employee(&mut employees, current_date);
+                    let mut employee_short_to_plan =
+                        plan_employee(&mut employees, current_date, true);
                     let mut attempts = 0;
                     while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
-                        employee_short_to_plan = plan_employee(&mut employees, current_date);
+                        employee_short_to_plan = plan_employee(&mut employees, current_date, true);
                         attempts += 1;
                     }
                     if employee_short_to_plan.contains("Error") {
                         errors += 1;
+                        employee_short_to_plan =
+                            plan_employee_with_lowest_count(&mut employees, current_date, true);
                     }
                     line_to_add.push_str(&employee_short_to_plan);
                 }
@@ -209,7 +215,38 @@ fn is_weekend(date: NaiveDate) -> bool {
     matches!(date.weekday(), Weekday::Sat | Weekday::Sun)
 }
 
-fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
+fn plan_employee_with_lowest_count(
+    employees: &mut Vec<Employee>,
+    date: NaiveDate,
+    afternoon: bool,
+) -> String {
+    employees.sort_by(|a, b| {
+        a.count
+            .partial_cmp(&b.count)
+            .unwrap_or(std::cmp::Ordering::Greater)
+    });
+    let mut position = 0;
+    let mut morning_afternoon = "v";
+    if afternoon {
+        morning_afternoon = "n";
+    }
+    let weekdaycode = format!(
+        "{}{}",
+        date.weekday().number_from_monday(),
+        morning_afternoon
+    );
+    while position <= employees.len() {
+        if !employees[position].off_days.contains(&weekdaycode) {
+            employees[position].count =
+                employees[position].count + (1.0 * (1.0 / employees[position].percent));
+            return employees[position].short.clone();
+        }
+        position = position + 1;
+    }
+    return String::from("Error::noEmployeeFound");
+}
+
+fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate, afternoon: bool) -> String {
     let mut rng = thread_rng();
     employees.sort_by(|a, b| {
         a.count
@@ -231,7 +268,15 @@ fn plan_employee(employees: &mut Vec<Employee>, date: NaiveDate) -> String {
     }
 
     // If the chosen Employee does not work on this day, return an error string
-    let weekdaycode = format!("{}v", date.weekday().number_from_monday());
+    let mut morning_afternoon = "v";
+    if afternoon {
+        morning_afternoon = "n";
+    }
+    let weekdaycode = format!(
+        "{}{}",
+        date.weekday().number_from_monday(),
+        morning_afternoon
+    );
     if employees[random_employee_number]
         .off_days
         .contains(&weekdaycode)
