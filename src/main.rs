@@ -17,6 +17,21 @@ use rand::Rng;
 use rand::thread_rng;
 
 fn main() {
+    // Write version and info about the program to console
+    println!("__        __    _ _         _               _                             ");
+    println!("\\ \\      / /_ _| | | __    (_)_ __    _ __ | | __ _ _ __  _ __   ___ _ __ ");
+    println!(" \\ \\ /\\ / / _` | | |/ /____| | '_ \\  | '_ \\| |/ _` | '_ \\| '_ \\ / _ \\ '__|");
+    println!("  \\ V  V / (_| | |   <_____| | | | | | |_) | | (_| | | | | | | |  __/ |   ");
+    println!(
+        "   \\_/\\_/_\\__,_|_|_|\\_\\    |_|_| |_| | .__/|_|\\__,_|_| |_|_| |_|\\___|_|   v0.2"
+    );
+    // println!("__   __/ _ \\ |___ \\                  |_|                                  ");
+    // println!("\\ \\ / / | | |  __) |                                                      ");
+    // println!(" \\ V /| |_| | / __/                                                       ");
+    // println!("  \\_/  \\___(_)_____|");
+    // println!("\nv0.2");
+    // println!("--------------------");
+
     let mut output_file_handler = FileHandler::new();
 
     let file_path = get_file_path(String::from("input.json"));
@@ -173,7 +188,7 @@ fn main() {
             // Write prepared content to output file
             let _ = output_file_handler.write_to_file(&get_file_path(String::from("./output.csv")));
 
-            println!("\n\nInfo:");
+            println!("\nInfo:");
             println!("------------------");
             println!("Planned from {} to {}", start_date_string, end_date_string);
             println!(
@@ -183,11 +198,11 @@ fn main() {
             println!("Days planned: {}", days_planned.to_string());
             println!("Errors: {}", errors.to_string());
 
-            println!("\n\nEmployees planned:");
+            println!("\nEmployees planned:");
             println!("------------------");
             for e in employees {
                 println!(
-                    "{}\t{}\t{} duties (effective {}).",
+                    "{}\t{}\n  {} duties (effective {}).\n",
                     e.name,
                     e.surname,
                     e.count,
