@@ -23,7 +23,7 @@ fn main() {
     println!(" \\ \\ /\\ / / _` | | |/ /____| | '_ \\  | '_ \\| |/ _` | '_ \\| '_ \\ / _ \\ '__|");
     println!("  \\ V  V / (_| | |   <_____| | | | | | |_) | | (_| | | | | | | |  __/ |   ");
     println!(
-        "   \\_/\\_/_\\__,_|_|_|\\_\\    |_|_| |_| | .__/|_|\\__,_|_| |_|_| |_|\\___|_|   v0.2"
+        "   \\_/\\_/_\\__,_|_|_|\\_\\    |_|_| |_| | .__/|_|\\__,_|_| |_|_| |_|\\___|_|   v0.3"
     );
     // println!("__   __/ _ \\ |___ \\                  |_|                                  ");
     // println!("\\ \\ / / | | |  __) |                                                      ");
@@ -116,32 +116,41 @@ fn main() {
 
                 // Plan morning employee
                 let key = format!("{}v", current_date.weekday().number_from_monday());
-                if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
-                    let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
-                    if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
-                        line_to_add.push_str(&employees[index].short);
-                        // TODO: move this to a function, including the part in plan_employee
-                        employees[index].count =
-                            employees[index].count + (1.0 * (1.0 / employees[index].percent));
-                        // Set last duty to this date
-                        employees[index].last_duty = current_date;
-                    } else {
-                        println!("Employee with ID {} not found", id_to_find);
-                    }
+                // Check for global off days
+                if company_data.global_off_days.contains(&key) {
+                    line_to_add.push_str(&String::from("kein Dienst"));
                 } else {
-                    let mut employee_short_to_plan =
-                        plan_employee(&mut employees, current_date, false);
-                    let mut attempts = 0;
-                    while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
-                        employee_short_to_plan = plan_employee(&mut employees, current_date, false);
-                        attempts += 1;
+                    if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
+                        let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
+                        if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
+                            line_to_add.push_str(&employees[index].short);
+                            // TODO: move this to a function, including the part in plan_employee
+                            employees[index].count =
+                                employees[index].count + (1.0 * (1.0 / employees[index].percent));
+                            // Set last duty to this date
+                            employees[index].last_duty = current_date;
+                        } else {
+                            println!("Employee with ID {} not found", id_to_find);
+                        }
+                    } else {
+                        let mut employee_short_to_plan =
+                            plan_employee(&mut employees, current_date, false);
+                        let mut attempts = 0;
+                        while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
+                            employee_short_to_plan =
+                                plan_employee(&mut employees, current_date, false);
+                            attempts += 1;
+                        }
+                        if employee_short_to_plan.contains("Error") {
+                            errors += 1;
+                            employee_short_to_plan = plan_employee_with_lowest_count(
+                                &mut employees,
+                                current_date,
+                                false,
+                            );
+                        }
+                        line_to_add.push_str(&employee_short_to_plan);
                     }
-                    if employee_short_to_plan.contains("Error") {
-                        errors += 1;
-                        employee_short_to_plan =
-                            plan_employee_with_lowest_count(&mut employees, current_date, false);
-                    }
-                    line_to_add.push_str(&employee_short_to_plan);
                 }
 
                 // Add divider of morning and afternoon (yes, it's just a coma)
@@ -149,34 +158,40 @@ fn main() {
 
                 // Plan afternoon employee
                 let key = format!("{}n", current_date.weekday().number_from_monday());
-                if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
-                    let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
-                    if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
-                        line_to_add.push_str(&employees[index].short);
-                        // TODO: move this to a function, including the part in plan_employee
-                        employees[index].count =
-                            employees[index].count + (1.0 * (1.0 / employees[index].percent));
-                        // Set last duty to this date
-                        employees[index].last_duty = current_date;
-                    } else {
-                        println!("Employee with ID {} not found", id_to_find);
-                    }
-                } else {
-                    let mut employee_short_to_plan =
-                        plan_employee(&mut employees, current_date, true);
-                    let mut attempts = 0;
-                    while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
-                        employee_short_to_plan = plan_employee(&mut employees, current_date, true);
-                        attempts += 1;
-                    }
-                    if employee_short_to_plan.contains("Error") {
-                        errors += 1;
-                        employee_short_to_plan =
-                            plan_employee_with_lowest_count(&mut employees, current_date, true);
-                    }
-                    line_to_add.push_str(&employee_short_to_plan);
-                }
 
+                // Check for global off days
+                if company_data.global_off_days.contains(&key) {
+                    line_to_add.push_str(&String::from("kein Dienst"));
+                } else {
+                    if company_data.fix_days[0].get(&key).unwrap_or(&0) > &0 {
+                        let id_to_find = company_data.fix_days[0].get(&key).unwrap_or(&0);
+                        if let Some(index) = employees.iter().position(|e| e.id == *id_to_find) {
+                            line_to_add.push_str(&employees[index].short);
+                            // TODO: move this to a function, including the part in plan_employee
+                            employees[index].count =
+                                employees[index].count + (1.0 * (1.0 / employees[index].percent));
+                            // Set last duty to this date
+                            employees[index].last_duty = current_date;
+                        } else {
+                            println!("Employee with ID {} not found", id_to_find);
+                        }
+                    } else {
+                        let mut employee_short_to_plan =
+                            plan_employee(&mut employees, current_date, true);
+                        let mut attempts = 0;
+                        while employee_short_to_plan == "Error:isOffDay" && attempts < 5000 {
+                            employee_short_to_plan =
+                                plan_employee(&mut employees, current_date, true);
+                            attempts += 1;
+                        }
+                        if employee_short_to_plan.contains("Error") {
+                            errors += 1;
+                            employee_short_to_plan =
+                                plan_employee_with_lowest_count(&mut employees, current_date, true);
+                        }
+                        line_to_add.push_str(&employee_short_to_plan);
+                    }
+                }
                 // Add the prepared line to the output
                 output_file_handler.add_line(&line_to_add);
 
